@@ -1,36 +1,118 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🪨 Pedras & Bancadas - App de Orçamento
 
-## Getting Started
+Um aplicativo web completo para gerenciar e gerar orçamentos de bancadas de pedra (mármore, ônix, granito, etc.) para banheiros, cozinhas e áreas comuns.
 
-First, run the development server:
+## ✨ Funcionalidades
+
+### 👨‍💼 Painel do Vendedor
+- **Autenticação segura** com email/senha
+- **Gerenciamento de Pedras**: Cadastro, edição e exclusão de tipos de pedra
+- **Geração de Links**: Criar links únicos para enviar aos clientes
+- **Dashboard**: Visualizar orçamentos recebidos e métricas
+- **Configurações**: Ajustar desconto à vista, parcelamento, valor de instalação
+
+### 👥 Portal do Cliente
+- **Formulário de Orçamento**: Preencher medidas da bancada
+- **Seleção Visual**: Escolher tipo de pedra com imagem
+- **Cálculo em Tempo Real**: Visualizar preços à vista e parcelados
+- **Toggle de Instalação**: Incluir ou não o serviço de instalação
+- **Envio por WhatsApp**: Botão direto para enviar orçamento via WhatsApp
+
+## 🛠️ Stack Tecnológico
+
+- **Frontend**: Next.js 14, React 19, TypeScript
+- **Styling**: Tailwind CSS, shadcn/ui
+- **Backend**: Next.js API Routes
+- **Database**: SQLite (dev) / PostgreSQL (prod)
+- **ORM**: Prisma 7
+- **Autenticação**: NextAuth.js v4
+
+## 🚀 Começando
+
+### Instalação
 
 ```bash
+git clone https://github.com/seu-usuario/pedras-app.git
+cd pedras-app
+npm install
+npx prisma generate
+npx prisma migrate deploy
+npm run seed
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Acesse: **http://localhost:3000**
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Credenciais de Teste
+- **Email**: admin@pedras.com
+- **Senha**: admin123
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 📁 Estrutura
 
-## Learn More
+```
+pedras-app/
+├── app/
+│   ├── (admin)/          # Painel do vendedor
+│   ├── (auth)/           # Autenticação
+│   ├── orcamento/        # Portal do cliente
+│   └── api/              # API Routes
+├── lib/
+│   ├── auth.ts
+│   ├── db.ts
+│   └── calculos.ts
+└── prisma/               # Database schemas
+```
 
-To learn more about Next.js, take a look at the following resources:
+## 📊 Fluxo
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. **Vendedor** cadastra pedras em `/admin/pedras`
+2. **Vendedor** gera link em `/admin/links`
+3. **Vendedor** envia link ao cliente
+4. **Cliente** acessa `/orcamento/[token]`
+5. **Cliente** preenche medidas e recebe orçamento
+6. **Cliente** envia por WhatsApp
+7. **Vendedor** acompanha em `/admin/orcamentos`
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🧮 Cálculo
 
-## Deploy on Vercel
+```
+Área Total = (Comprimento × Largura) + (Rodabancada) + (Testeira) - (Corte Cubas)
+Valor = Área Total × Preço/m² + Instalação (se selecionado)
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🚢 Deploy no Vercel
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Push para GitHub
+2. Conectar no Vercel
+3. Adicionar variáveis de ambiente:
+   ```
+   DATABASE_URL=postgresql://...  (Neon)
+   NEXTAUTH_SECRET=seu-secret
+   NEXTAUTH_URL=https://seu-app.vercel.app
+   ```
+4. Deploy automático
+
+## 📝 Scripts
+
+```bash
+npm run dev       # Desenvolvimento
+npm run build     # Build produção
+npm start         # Iniciar produção
+npm run seed      # Popular banco
+```
+
+## 🔒 Segurança
+
+- ✅ Senhas criptografadas (bcryptjs)
+- ✅ JWT com NextAuth
+- ✅ Routes protegidas
+- ✅ CSRF protection
+- ✅ SQL injection prevention (Prisma)
+
+## 📄 Licença
+
+MIT
+
+---
+
+**Desenvolvido com Claude Code** 🤖
