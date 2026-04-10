@@ -1,6 +1,6 @@
 import { PrismaClient } from "../prisma/generated/client";
 import { PrismaLibSql } from "@prisma/adapter-libsql";
-import { createClient } from "@libsql/client";
+import path from "path";
 
 const globalForPrisma = global as unknown as { prisma: PrismaClient };
 
@@ -8,9 +8,7 @@ export const prisma =
   globalForPrisma.prisma ||
   new PrismaClient({
     adapter: new PrismaLibSql({
-      client: createClient({
-        url: `file:${process.cwd()}/prisma/dev.db`,
-      }),
+      url: `file:${path.join(process.cwd(), "prisma", "dev.db")}`,
     }),
   } as any);
 
