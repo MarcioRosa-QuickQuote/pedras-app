@@ -1,0 +1,64 @@
+generator client {
+  provider = "prisma-client"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  nome      String
+  createdAt DateTime @default(now())
+  orcamentos Orcamento[]
+  links     LinkCliente[]
+}
+
+model Pedra {
+  id          String   @id @default(cuid())
+  nome        String
+  descricao   String?
+  precoPorM2  Float
+  imagemUrl   String
+  ativa       Boolean  @default(true)
+  createdAt   DateTime @default(now())
+}
+
+model Configuracao {
+  id    String @id @default(cuid())
+  chave String @unique
+  valor String
+}
+
+model LinkCliente {
+  id          String   @id @default(cuid())
+  token       String   @unique @default(cuid())
+  descricao   String?
+  vendedorId  String
+  vendedor    User     @relation(fields: [vendedorId], references: [id])
+  orcamento   Orcamento?
+  expiresAt   DateTime?
+  createdAt   DateTime @default(now())
+}
+
+model Orcamento {
+  id                String      @id @default(cuid())
+  linkId            String      @unique
+  link              LinkCliente @relation(fields: [linkId], references: [id])
+  vendedorId        String
+  vendedor          User        @relation(fields: [vendedorId], references: [id])
+  clienteNome       String?
+  clienteEmail      String?
+  clienteTel        String?
+  pedraId           String
+  pedraNome         String
+  dados             String      // JSON stringificado
+  valorTotal        Float
+  valorAvista       Float
+  incluiInstalacao  Boolean     @default(false)
+  plantaUrl         String?
+  status            String      @default("pendente")
+  createdAt         DateTime    @default(now())
+}
