@@ -22,13 +22,13 @@ export default function LoginPage() {
         email,
         password,
         redirect: false,
-        callbackUrl: "/admin/dashboard",
+        callbackUrl: "/dashboard",
       });
 
       if (result?.error) {
         setError(result.error || "Email ou senha incorretos");
       } else if (result?.ok) {
-        router.replace("/admin/dashboard");
+        router.replace("/dashboard");
       }
     } catch (err) {
       setError("Erro ao fazer login. Tente novamente.");
