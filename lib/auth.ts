@@ -2,28 +2,19 @@ import { NextAuthOptions, Session } from "next-auth";
 import { JWT } from "next-auth/jwt";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { compare } from "bcryptjs";
-import { prisma } from "./db";
+import { supabase } from "./supabase";
 
 declare module "next-auth" {
   interface Session {
-    user: {
-      id: string;
-      email: string;
-      name: string;
-    };
+    user: { id: string; email: string; name: string };
   }
-
   interface User {
-    id: string;
-    email: string;
-    name: string;
+    id: string; email: string; name: string;
   }
 }
 
 declare module "next-auth/jwt" {
-  interface JWT {
-    id: string;
-  }
+  interface JWT { id: string }
 }
 
 export const authOptions: NextAuthOptions = {
@@ -39,48 +30,30 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Email e senha são obrigatórios");
         }
 
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email },
-        });
+        const { data: user } = await supabase
+          .from("User")
+          .select("*")
+          .eq("email", credentials.email)
+          .single();
 
-        if (!user) {
-          throw new Error("Email não encontrado");
-        }
+        if (!user) throw new Error("Email não encontrado");
 
-        const isPasswordValid = await compare(
-          credentials.password,
-          user.password
-        );
+        const valid = await compare(credentials.password, user.password);
+        if (!valid) throw new Error("Senha incorreta");
 
-        if (!isPasswordValid) {
-          throw new Error("Senha incorreta");
-        }
-
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.nome,
-        };
+        return { id: user.id, email: user.email, name: user.nome };
       },
     }),
   ],
-  pages: {
-    signIn: "/login",
-  },
-  session: {
-    strategy: "jwt",
-  },
+  pages: { signIn: "/login" },
+  session: { strategy: "jwt" },
   callbacks: {
     async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id;
-      }
+      if (user) token.id = user.id;
       return token;
     },
     async session({ session, token }) {
-      if (session.user) {
-        session.user.id = token.id as string;
-      }
+      if (session.user) session.user.id = token.id as string;
       return session;
     },
   },

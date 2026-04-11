@@ -1,61 +1,33 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/db";
+import { supabase } from "@/lib/supabase";
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session) {
-      return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
-    }
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const session = await getServerSession(authOptions);
+  if (!session) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
-    const { id } = await params;
-    await prisma.pedra.delete({
-      where: { id },
-    });
+  const { id } = await params;
+  const { error } = await supabase.from("Pedra").delete().eq("id", id);
 
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    return NextResponse.json(
-      { error: "Erro ao deletar pedra" },
-      { status: 500 }
-    );
-  }
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json({ success: true });
 }
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session) {
-      return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
-    }
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const session = await getServerSession(authOptions);
+  if (!session) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
-    const { id } = await params;
-    const body = await request.json();
-    const { nome, descricao, precoPorM2, imagemUrl } = body;
+  const { id } = await params;
+  const { nome, descricao, precoPorM2, imagemUrl } = await request.json();
 
-    const pedra = await prisma.pedra.update({
-      where: { id },
-      data: {
-        nome,
-        descricao,
-        precoPorM2: parseFloat(precoPorM2),
-        imagemUrl,
-      },
-    });
+  const { data, error } = await supabase
+    .from("Pedra")
+    .update({ nome, descricao, precoPorM2: parseFloat(precoPorM2), imagemUrl })
+    .eq("id", id)
+    .select()
+    .single();
 
-    return NextResponse.json(pedra);
-  } catch (error) {
-    return NextResponse.json(
-      { error: "Erro ao atualizar pedra" },
-      { status: 500 }
-    );
-  }
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json(data);
 }

@@ -1,77 +1,35 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/db";
+import { supabase } from "@/lib/supabase";
 
-export async function GET(request: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session || !session.user?.id) {
-      return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
-    }
+export async function GET() {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
-    const orcamentos = await prisma.orcamento.findMany({
-      where: { vendedorId: session.user.id },
-      orderBy: { createdAt: "desc" },
-    });
+  const { data, error } = await supabase
+    .from("Orcamento")
+    .select("*")
+    .eq("vendedorId", session.user.id)
+    .order("createdAt", { ascending: false });
 
-    return NextResponse.json(orcamentos);
-  } catch (error) {
-    return NextResponse.json(
-      { error: "Erro ao buscar orçamentos" },
-      { status: 500 }
-    );
-  }
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json(data);
 }
 
 export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json();
-    const {
-      linkId,
-      vendedorId,
-      clienteNome,
-      clienteEmail,
-      clienteTel,
-      pedraId,
-      pedraNome,
-      dados,
-      valorTotal,
-      valorAvista,
-      incluiInstalacao,
-    } = body;
+  const body = await request.json();
+  const { linkId, vendedorId, clienteNome, clienteEmail, clienteTel, pedraId, pedraNome, dados, valorTotal, valorAvista, incluiInstalacao } = body;
 
-    // Verificar se link existe
-    const link = await prisma.linkCliente.findUnique({
-      where: { id: linkId },
-    });
+  const { data: link } = await supabase.from("LinkCliente").select("id").eq("id", linkId).single();
+  if (!link) return NextResponse.json({ error: "Link não encontrado" }, { status: 404 });
 
-    if (!link) {
-      return NextResponse.json({ error: "Link não encontrado" }, { status: 404 });
-    }
+  const { data, error } = await supabase
+    .from("Orcamento")
+    .insert({ linkId, vendedorId, clienteNome, clienteEmail, clienteTel, pedraId, pedraNome, dados, valorTotal, valorAvista, incluiInstalacao })
+    .select()
+    .single();
 
-    const orcamento = await prisma.orcamento.create({
-      data: {
-        linkId,
-        vendedorId,
-        clienteNome,
-        clienteEmail,
-        clienteTel,
-        pedraId,
-        pedraNome,
-        dados,
-        valorTotal,
-        valorAvista,
-        incluiInstalacao,
-      },
-    });
-
-    return NextResponse.json(orcamento, { status: 201 });
-  } catch (error) {
-    console.error("Erro ao criar orçamento:", error);
-    return NextResponse.json(
-      { error: "Erro ao criar orçamento" },
-      { status: 500 }
-    );
-  }
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json(data, { status: 201 });
 }
