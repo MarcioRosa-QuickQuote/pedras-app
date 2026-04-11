@@ -1,29 +1,16 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
+import { supabase } from "@/lib/supabase";
 import { hash } from "bcryptjs";
 
-// Rota de inicialização — só funciona se a chave secreta for passada
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const secret = searchParams.get("secret");
-
-  if (secret !== process.env.NEXTAUTH_SECRET) {
+  if (searchParams.get("secret") !== process.env.NEXTAUTH_SECRET)
     return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
-  }
 
   try {
-    // Criar admin
-    const adminEmail = "admin@pedras.com";
-    const existing = await prisma.user.findUnique({ where: { email: adminEmail } });
+    const hashed = await hash("admin123", 10);
+    await supabase.from("User").upsert({ email: "admin@pedras.com", password: hashed, nome: "Admin" }, { onConflict: "email" });
 
-    if (!existing) {
-      const hashed = await hash("admin123", 10);
-      await prisma.user.create({
-        data: { email: adminEmail, password: hashed, nome: "Admin" },
-      });
-    }
-
-    // Configurações padrão
     const configs = [
       { chave: "desconto_avista_pct", valor: "10" },
       { chave: "parcelas_cartao", valor: "4" },
@@ -32,32 +19,10 @@ export async function GET(request: Request) {
       { chave: "nome_empresa", valor: "Sua Empresa de Pedras" },
       { chave: "telefone_whatsapp", valor: "5585999999999" },
     ];
+    await supabase.from("Configuracao").upsert(configs, { onConflict: "chave" });
 
-    for (const config of configs) {
-      await prisma.configuracao.upsert({
-        where: { chave: config.chave },
-        update: {},
-        create: config,
-      });
-    }
-
-    // Pedras de exemplo
-    const pedras = [
-      { nome: "Ônix Translúcido Cristallo", descricao: "Bancada elegante com acabamento cristalino", precoPorM2: 500, imagemUrl: "https://via.placeholder.com/400x300?text=Onix" },
-      { nome: "Mármore Branco Puro", descricao: "Clássico e sofisticado para qualquer ambiente", precoPorM2: 350, imagemUrl: "https://via.placeholder.com/400x300?text=Marmore" },
-      { nome: "Granito Preto São Gabriel", descricao: "Durável e elegante para cozinhas modernas", precoPorM2: 250, imagemUrl: "https://via.placeholder.com/400x300?text=Granito" },
-    ];
-
-    for (const pedra of pedras) {
-      const exists = await prisma.pedra.findFirst({ where: { nome: pedra.nome } });
-      if (!exists) {
-        await prisma.pedra.create({ data: pedra });
-      }
-    }
-
-    return NextResponse.json({ ok: true, message: "Banco inicializado com sucesso!" });
+    return NextResponse.json({ ok: true });
   } catch (error) {
-    console.error(error);
     return NextResponse.json({ error: String(error) }, { status: 500 });
   }
 }
