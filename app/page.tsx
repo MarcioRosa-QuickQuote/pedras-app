@@ -10,7 +10,7 @@ export default function Home() {
 
   useEffect(() => {
     if (status === "authenticated") {
-      router.push("/admin/dashboard");
+      router.push("/dashboard");
     } else if (status === "unauthenticated") {
       router.push("/login");
     }
