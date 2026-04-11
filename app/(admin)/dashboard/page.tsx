@@ -43,7 +43,7 @@ export default function DashboardPage() {
           Comece cadastrando as pedras que sua empresa oferece.
         </p>
         <a
-          href="/admin/pedras"
+          href="/pedras"
           className="inline-block px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
         >
           Cadastrar Pedra

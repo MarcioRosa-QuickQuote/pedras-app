@@ -38,31 +38,31 @@ export default function AdminLayout({
 
         <nav className="p-6 space-y-4">
           <Link
-            href="/admin/dashboard"
+            href="/dashboard"
             className="block px-4 py-2 rounded hover:bg-gray-800 transition"
           >
             Dashboard
           </Link>
           <Link
-            href="/admin/pedras"
+            href="/pedras"
             className="block px-4 py-2 rounded hover:bg-gray-800 transition"
           >
             Pedras
           </Link>
           <Link
-            href="/admin/links"
+            href="/links"
             className="block px-4 py-2 rounded hover:bg-gray-800 transition"
           >
             Links
           </Link>
           <Link
-            href="/admin/orcamentos"
+            href="/orcamentos"
             className="block px-4 py-2 rounded hover:bg-gray-800 transition"
           >
             Orçamentos
           </Link>
           <Link
-            href="/admin/configuracoes"
+            href="/configuracoes"
             className="block px-4 py-2 rounded hover:bg-gray-800 transition"
           >
             Configurações
